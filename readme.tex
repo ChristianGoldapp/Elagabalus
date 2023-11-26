@@ -1,0 +1,38 @@
+\documentclass{article}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+\begin{document}
+
+\begin{algorithm}
+\caption{Polynomial Function}
+\begin{algorithmic}[1]
+\Function{Polynomial}{$\text{slice}[0..KEY\_SIZE]$}
+    \State $result \gets 0$
+    \For{$i \gets 0$ to $KEY\_SIZE - 1$}
+        \State $index \gets i + 1$
+        \State $term \gets \text{slice}[i].\text{pow}(index)$
+        \State $result \gets result + term$
+    \EndFor
+    \State \Return $result$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\caption{Encrypt Function}
+\begin{algorithmic}[1]
+\Function{Encrypt}{$\text{key}[0..KEY\_SIZE]$, $\text{cleartext}[0..n-1]$}
+    \State $\text{encryption\_vector} \gets \text{key}[0..KEY\_SIZE]$
+    \State $\text{cipher\_text} \gets \emptyset$
+    \For{$i \gets 0$ to $n - 1$}
+        \State $key\_stream \gets \text{Polynomial}(\text{encryption\_vector}[i..i + KEY\_SIZE])$
+        \State $cipher\_block \gets \text{cleartext}[i] \oplus key\_stream$
+        \State $\text{encryption\_vector}.\text{append}(cipher\_block)$
+    \EndFor
+    \State \Return $\text{encryption\_vector}[16..]$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\end{document}
