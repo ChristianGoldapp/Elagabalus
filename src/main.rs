@@ -49,35 +49,46 @@ const KEY_SIZE: usize = 16;
 type KEY = [Block; KEY_SIZE];
 
 impl Elegabalus {
-    fn polynomial(slice: &[Block; KEY_SIZE]) -> Block {
+    fn polynomial(slice: &[Block]) -> Block {
         slice.iter().enumerate().map(|(i, b)| {
             let index: u32 = i as u32;  //Iterate 1..=16
             b.pow(index + 1)
         }).reduce(Add::add).unwrap()
     }
 
+    fn rotate_key(slice: &mut [Block], modifier: &Block) {
+        for (i, b) in slice.iter_mut().enumerate() {
+            let index: u32 = i as u32;  //Iterate 1..=16
+            *b = *b ^ modifier.pow(index + 1);
+        }
+    }
+
     fn encrypt(key: KEY, cleartext: Vec<Block>) -> Vec<Block> {
         let mut encryption_vector: Vec<Block> = key.to_vec();
+        let mut ciphertext: Vec<Block> = Vec::new();
         for (i, block) in cleartext.iter().enumerate() {
             let key_stream = Self::polynomial(encryption_vector[i..i + KEY_SIZE].try_into().unwrap());
             let cipher_block = *block ^ key_stream;
             encryption_vector.push(cipher_block);
+            Self::rotate_key(&mut encryption_vector[i..i + KEY_SIZE], &cipher_block);
+            ciphertext.push(cipher_block);
         }
-        encryption_vector[16..].to_vec()
+        ciphertext
     }
 
     fn decrypt(key: KEY, ciphertext: Vec<Block>) -> Vec<Block> {
         let mut encryption_vector: Vec<Block> = key.to_vec();
         encryption_vector.append(&mut ciphertext.to_vec());
 
-        let mut decryption_vector: Vec<Block> = Vec::new();
+        let mut cleartext: Vec<Block> = Vec::new();
 
         for (i, block) in ciphertext.iter().enumerate() {
             let key_stream = Self::polynomial(encryption_vector[i..i + KEY_SIZE].try_into().unwrap());
             let cleartext_block = *block ^ key_stream;
-            decryption_vector.push(cleartext_block);
+            Self::rotate_key(&mut encryption_vector[i..i + KEY_SIZE], &block);
+            cleartext.push(cleartext_block);
         }
-        decryption_vector
+        cleartext
     }
 }
 
